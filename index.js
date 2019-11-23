@@ -9,11 +9,11 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 async function getToday() {
-    let classrooms = await axios.get('https://rezervacije.fri.uni-lj.si/sets/rezervacije_fri/types/classroom/time_view');
-    return classrooms.data.res_list
+    let response = await axios.get('https://rezervacije.fri.uni-lj.si/sets/rezervacije_fri/types/classroom/time_view');
+    return response.data.res_list
 }
 
-async function getReservations(res_list) {
+async function getOccupiedStatus(res_list) {
     let response = [];
     for (let classroom of res_list) {
         let reservations = classroom.reservations;
@@ -63,18 +63,18 @@ function nowBetween(startS, endS) {
 }
 
 app.get('/classrooms', async (req, res) => {
-    let classrooms = await getToday();
-    let response = await getReservations(classrooms);
+    let res_list = await getToday();
+    let response = await getOccupiedStatus(res_list);
     res.send(response);
 })
 
 app.get('/classrooms/:resource', async (req, res) => {
-    let classrooms = (await getToday())
+    let res_list = (await getToday())
         .filter((element) => {
             if (element.reservable.resources.indexOf(parseInt(req.params.resource))>=0) return true;
             return false;
         })
-    let response = await getReservations(classrooms);
+    let response = await getOccupiedStatus(res_list);
     res.send(response);
 })
 
